@@ -1,0 +1,243 @@
+===================================
+
+WebAPI URLS : 
+
+http://localhost:50602/api/TransactionSummary/Gethistory?startdate=2020-02-26&enddate=2020-07-26&accountnumber=12345678912345&accountnumber=98765432112345&accountnumber=25836914796385&sort=-accountnumber
+
+http://localhost:50602/api/TransactionSummary/Gethistory?startdate=2020-02-26&enddate=2020-07-26&accountnumber=12345678912345&accountnumber=98765432112345&accountnumber=25836914796385&sort=-accountnumber,Balance  
+
+
+
+http://localhost:49981/api/TransactionDetails/Gethistory?startdate=2020-02-26&enddate=2020-07-26&accountnumber=12345678912345&accountnumber=98765432112345&accountnumber=25836914796385&sort=-accountnumber
+
+http://localhost:49981/api/TransactionDetails/Gethistory?startdate=2020-02-26&enddate=2020-07-26&accountnumber=12345678912345&accountnumber=98765432112345&accountnumber=25836914796385&sort=-accountnumber,Balance  
+
+http://localhost:49981/api/TransactionDetails/Gethistory?startdate=26/02/2020&enddate=26/07/2020&accountnumber=12345678912345&accountnumber=98765432112345&accountnumber=25836914796385&sort=-accountnumber
+
+http://localhost:49981/api/TransactionDetails/Gethistory?startdate=02/26/2020&enddate=07/26/2020&accountnumber=12345678912345&accountnumber=98765432112345&accountnumber=25836914796385&sort=-accountnumber
+
+http://localhost:63637/api/TransactionDetails/Gethistory?startdate=02/26/2020&enddate=07/26/2020&accountnumber=12345678912345&accountnumber=98765432112345&accountnumber=25836914796385&sort=-accountnumber
+
+
+http://localhost:49981/swagger
+
+==================================
+
+Create database DemoDB
+
+use DemoDB
+
+
+create table TransactionSummary(
+       Id int identity(1,1),
+	   AccountNumber VARCHAR(50),
+       TransactionDate datetime,
+	   Particulars varchar(250),
+	   CheqOrRefNo VARCHAR(50),
+	   ValueDate   datetime,
+	   Withdrawal  decimal(10,2) NULL,
+	   Deposit     decimal(10,2) NULL,
+	   Balance     decimal(10,2)
+	   )
+
+
+
+INSERT INTO TransactionSummary(AccountNumber ,TransactionDate,Particulars ,CheqOrRefNo,ValueDate,Withdrawal,Deposit ,Balance)
+SELECT '12345678912345',getdate()-200,'NWD-123584698712365-DEBN1021-THANE','4021356984',getdate()-201,2000.00,null,123456
+UNION ALL
+SELECT '12345678912345',getdate()-100,'ADG-123584698712365-DEBN1021-THANE','523356984',getdate()-100,1000.00,null,458621
+UNION ALL
+SELECT '12345678912345',getdate()-50,'FDS-123584698712365-DEBN1021-THANE','356984',getdate()-50,NULL,50000.00,4589621
+UNION ALL
+SELECT '12345678912345',getdate()-10,'KHS-123584698712365-DEBN1021-THANE','356984',getdate()-10,NULL,20000.00,4568752
+UNION ALL
+SELECT '12345678912345',getdate(),'JHK-123584698712365-DEBN1021-THANE','125463',getdate(),1000.00,NULL,4568231
+UNION ALL
+SELECT '98765432112345',getdate()-200,'NWD-123584698712365-DEBN1021-THANE','4021356984',getdate()-201,2000.00,null,123456
+UNION ALL
+SELECT '98765432112345',getdate()-100,'ADG-123584698712365-DEBN1021-THANE','523356984',getdate()-100,1000.00,null,458621
+UNION ALL
+SELECT '98765432112345',getdate()-50,'FDS-123584698712365-DEBN1021-THANE','356984',getdate()-50,NULL,50000.00,4589621
+UNION ALL
+SELECT '98765432112345',getdate()-10,'KHS-123584698712365-DEBN1021-THANE','356984',getdate()-10,NULL,20000.00,4568752
+UNION ALL
+SELECT '98765432112345',getdate(),'JHK-123584698712365-DEBN1021-THANE','125463',getdate(),1000.00,NULL,4568231
+UNION ALL
+SELECT '25836914796385',getdate()-200,'NWD-123584698712365-DEBN1021-THANE','4021356984',getdate()-201,2000.00,null,123456
+UNION ALL
+SELECT '25836914796385',getdate()-100,'ADG-123584698712365-DEBN1021-THANE','523356984',getdate()-100,1000.00,null,458621
+UNION ALL
+SELECT '25836914796385',getdate()-50,'FDS-123584698712365-DEBN1021-THANE','356984',getdate()-50,NULL,50000.00,4589621
+UNION ALL
+SELECT '25836914796385',getdate()-10,'KHS-123584698712365-DEBN1021-THANE','356984',getdate()-10,NULL,20000.00,4568752
+UNION ALL
+SELECT '25836914796385',getdate(),'JHK-123584698712365-DEBN1021-THANE','125463',getdate(),1000.00,NULL,4568231
+
+
+
+
+
+
+
+-- =============================================
+-- To Split the string and returns a table
+-- =============================================
+CREATE  FUNCTION [dbo].[Split]
+(
+   @sText varchar(8000), 
+   @sDelim varchar(20) = ''
+)
+RETURNS @retArray TABLE (idx smallint Primary Key, value varchar(8000))
+AS
+BEGIN
+DECLARE @idx int,
+@value varchar(8000),
+@bcontinue bit,
+@iStrike int,
+@iDelimlength int
+
+IF @sDelim = 'Space'
+BEGIN
+SET @sDelim = ' '
+END
+
+SET @idx = 0
+SET @sText = LTrim(RTrim(@sText))
+SET @iDelimlength = DATALENGTH(@sDelim)
+SET @bcontinue = 1
+
+if(Len(@sText) = 0)
+return
+
+IF NOT ((@iDelimlength = 0) or (@sDelim = 'Empty'))
+BEGIN
+WHILE @bcontinue = 1
+BEGIN
+
+--If you can find the delimiter in the text, retrieve the first element and
+--insert it with its index into the return table.
+
+IF CHARINDEX(@sDelim, @sText)>0
+BEGIN
+SET @value = SUBSTRING(@sText,1, CHARINDEX(@sDelim,@sText)-1)
+BEGIN
+INSERT @retArray (idx, value)
+VALUES (@idx, @value)
+END
+
+--Trim the element and its delimiter from the front of the string.
+--Increment the index and loop.
+SET @iStrike = DATALENGTH(@value) + @iDelimlength
+SET @idx = @idx + 1
+SET @sText = LTrim(Right(@sText,DATALENGTH(@sText) - @iStrike))
+
+END
+ELSE
+BEGIN
+--If you can't find the delimiter in the text, @sText is the last value in
+--@retArray.
+SET @value = @sText
+BEGIN
+INSERT @retArray (idx, value)
+VALUES (@idx, @value)
+END
+--Exit the WHILE loop.
+SET @bcontinue = 0
+END
+END
+END
+ELSE
+BEGIN
+WHILE @bcontinue=1
+BEGIN
+--If the delimiter is an empty string, check for remaining text
+--instead of a delimiter. Insert the first character into the
+--retArray table. Trim the character from the front of the string.
+--Increment the index and loop.
+IF DATALENGTH(@sText)>1
+BEGIN
+SET @value = SUBSTRING(@sText,1,1)
+BEGIN
+INSERT @retArray (idx, value)
+VALUES (@idx, @value)
+END
+SET @idx = @idx+1
+SET @sText = SUBSTRING(@sText,2,DATALENGTH(@sText)-1)
+
+END
+ELSE
+BEGIN
+--One character remains.
+--Insert the character, and exit the WHILE loop.
+INSERT @retArray (idx, value)
+VALUES (@idx, @sText)
+SET @bcontinue = 0
+END
+END
+
+END
+
+RETURN
+END
+
+
+
+
+
+
+
+======================================================================
+
+
+-- ================================================
+-- Template generated from Template Explorer using:
+-- Create Procedure (New Menu).SQL
+--
+-- Use the Specify Values for Template Parameters 
+-- command (Ctrl-Shift-M) to fill in the parameter 
+-- values below.
+--
+-- This block of comments will not be included in
+-- the definition of the procedure.
+-- ================================================
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Dharmendra Dwivedi
+-- Create date: 13-Sept-2020
+-- Description:	Used to get Transaction Summary
+-- EXEC  usp_GetTransactionSummary '2020-02-26','2020-07-26','12345678912345,98765432112345,25836914796385'
+-- EXEC  usp_GetTransactionSummary '2020-02-26','2020-07-26','12345678912345'
+-- =============================================
+CREATE PROCEDURE usp_GetTransactionSummary
+(
+  @StartDate DateTime,
+  @EndDate  DateTime,
+  @Accounts Varchar(500)  
+) 
+	
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	DECLARE @TBL table(AccountNumber varchar(500))
+    INSERT INTO @TBL (AccountNumber)
+    (SELECT value FROM dbo.Split(@Accounts,','))
+	 SELECT 	
+		   AccountNumber, 
+		   TransactionDate,
+		   Particulars ,
+		   CheqOrRefNo,
+		   ValueDate  ,
+		   Withdrawal,
+		   Deposit ,
+		   Balance
+     FROM dbo.TransactionSummary
+	 WHERE  TransactionDate between @StartDate AND @EndDate 
+	 AND AccountNumber IN(SELECT DISTINCT AccountNumber FROM @TBL) 
+	 
+END
+GO
